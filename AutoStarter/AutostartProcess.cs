@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 
 namespace AutoStarter
 {
-    class AutostartProcess
+    class AutostartProcess : IDisposable
     {
         public const string NORMAL = "Normal";
         public const string MAXIMIZED = "Maximized";
@@ -122,5 +123,13 @@ namespace AutoStarter
         }
 
 
+
+        public void Dispose()
+        {
+            if(_cancelProcess != null)
+                _cancelProcess.Dispose();
+            if(_cancelStartProcess != null)
+                _cancelStartProcess.Dispose();
+        }
     }
 }

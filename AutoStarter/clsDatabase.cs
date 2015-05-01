@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace AutoStarter
 {
-    class clsDatabase
+    class clsDatabase : IDisposable
     {
         static AutoStarter.Properties.Settings userSettings
         {
@@ -392,5 +392,21 @@ namespace AutoStarter
             }
         }
 
+
+        public void Dispose()
+        {
+            if (backgroundThreadExecute != null)
+                backgroundThreadExecute.Dispose();
+            if (backgroundThreadFill != null)
+                backgroundThreadFill.Dispose();
+            if (myConnection != null)
+                myConnection.Dispose();
+            if(myCommand != null)
+                myCommand.Dispose();
+            if(myReader != null)
+                myReader.Dispose();
+            if (myAdapter != null)
+                myAdapter.Dispose();
+        }
     }
 }
