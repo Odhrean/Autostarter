@@ -23,7 +23,7 @@ namespace AutoStarter
 
         AutostartProcess _processInfo;
         WINDOWPLACEMENT _lastPlacement;
-
+        bool isFirstStart = true;
         //String name;
         //ProcessStartInfo procInfo;
         // Alle restartTime Sekunden das Programm beenden und neu starten, 0= Permanent offen halten
@@ -61,23 +61,46 @@ namespace AutoStarter
                                 proc.Close();
                                 proc = childProcs[0];
                             }
+                            // Lass das Fenster starten... ohne Wartezeit gibt es eine Chance das das Handle noch nicht vorhanden ist...
+                            Thread.Sleep(200);
                             HwndObject window = new HwndObject(proc.MainWindowHandle);
-                            //   Setze Fenster-Größe und Position wieder auf vorige Werte
-                            window.SetWindowPlacement(_lastPlacement);
 
+                            if (isFirstStart)
+                            {                                
+                                // Beim ersten Start das Programm auf das gewünschte Display setzen
+                                window.DisplayOnScreen(System.Windows.Forms.Screen.AllScreens.ToList<System.Windows.Forms.Screen>().Find(x => x.DeviceName.Contains("DISPLAY" + _processInfo.Display)),_processInfo.startMaximized());
+                                isFirstStart = false;
+                            }
+                            else
+                            {
+                                // Wenn das Programm neu geladen wird die letzte Position einnehmen die es beim beenden inne hatte
+                                //window.SetWindowPlacement(_lastPlacement);
+                                if(_processInfo.Display != 1)
+                                    window.DisplayOnScreen(System.Windows.Forms.Screen.AllScreens.ToList<System.Windows.Forms.Screen>().Find(x => x.DeviceName.Contains("DISPLAY" + _processInfo.Display)), _processInfo.startMaximized());
+                            }
+
+                            /*
+                            _lastPlacement = window.GetWindowPlacement();
+                            window.Restore();
+                            */
                             // Programm regelmaessig neu laden oder permanent offen halten?
-                            if (_processInfo.ReloadTime == 0)
+                            if (_processInfo.ReloadTime == 0){                            
+                                // Programm immer maximiert neu starten wenn beendet wird, überschreibe die Konfig aus der DB
+                                _processInfo.WindowStyle = AutostartProcess.MAXIMIZED;
                                 proc.WaitForExit();
+                            }
                             else
                             {
                                 if (proc.WaitForExit(_processInfo.ReloadTime * 1000) && proc.ExitCode == 1)
                                 {
-                                    _processInfo.WindowStyle = AutostartProcess.NORMAL;
+                                    _processInfo.WindowStyle = AutostartProcess.NORMAL;                                    
                                 }
                             }
-                          
-                                               
-                            if (proc != null && !proc.HasExited && proc.MainWindowHandle != IntPtr.Zero)
+
+                            //int wstyle = window.GetWindowStyle();
+                            //Debug.Print("Handle Start {0} Handle jetzt {1} Fenster-Position für Re-Start sichern...Window-Style {3}", window.Hwnd, proc.MainWindowHandle,wstyle);                        
+
+                        if (proc != null && !proc.HasExited && proc.MainWindowHandle != IntPtr.Zero)
                             {                                
                                                                
                                 switch (window.GetWindowStyle())
@@ -91,9 +114,7 @@ namespace AutoStarter
                                     case 3:
                                         _processInfo.WindowStyle = AutostartProcess.MAXIMIZED;
                                         break;
-                                }
-
-                                _lastPlacement = window.GetWindowPlacement();
+                                }                                
 
                                 // Shutdown Process gracefully
                                 int tryCount = 0;

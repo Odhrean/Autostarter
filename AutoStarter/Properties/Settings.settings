@@ -6,13 +6,13 @@
       <Value Profile="(Default)">AutoStarter</Value>
     </Setting>
     <Setting Name="Version" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">1.1</Value>
+      <Value Profile="(Default)">1.2</Value>
     </Setting>
     <Setting Name="Build" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">$Revision: 392 $</Value>
+      <Value Profile="(Default)">$Revision: 393 $</Value>
     </Setting>
     <Setting Name="BuildDate" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">$Date: 2015-04-28 13:48:33 +0200 (Di, 28. Apr 2015) $</Value>
+      <Value Profile="(Default)">$Date: 2015-05-04 12:03:27 +0200 (Mo, 04. Mai 2015) $</Value>
     </Setting>
     <Setting Name="Reload_Interval" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">30</Value>

@@ -30,12 +30,15 @@ namespace AutoStarter
         public static void Main(string[] args)
         {
             /*
-            HwndObject notes = HwndObject.GetWindowByTitle("Notes");
+            
+            HwndObject notes = HwndObject.GetWindowByTitle(@"C:\");
 
             if (notes.Hwnd == (IntPtr)0)
                 notes = HwndObject.GetWindowByTitle("IBM Notes Mail - Eingang");
             if (notes.Hwnd == (IntPtr)0)
                 notes = HwndObject.GetWindowByTitle("Mail - Eingang - IBM Notes");
+            if (notes.Hwnd == (IntPtr)0)
+                notes = HwndObject.GetWindowByTitle("Notes");
 
             notes.Title = "Notes";
             
@@ -43,7 +46,7 @@ namespace AutoStarter
             //notes.SetWindowPos((IntPtr)(-1), screen1.WorkingArea.X, screen1.WorkingArea.Y, screen1.Bounds.Width, screen1.Bounds.Height, 0x0040);
             int style = notes.GetWindowStyle();
 
-            notes.DisplayOnScreen(System.Windows.Forms.Screen.AllScreens.ToList<Screen>().Find(x => x.DeviceName.Contains("DISPLAY2")));
+            notes.DisplayOnScreen(System.Windows.Forms.Screen.AllScreens.ToList<Screen>().Find(x => x.DeviceName.Contains("DISPLAY1")));
             */
             notico = new NotifyIcon();
             notico.Icon = Properties.Resources.stute_favicon;
@@ -74,10 +77,11 @@ namespace AutoStarter
            String sql = "SELECT [Prozess_Name],[Programm],[Argumente],[Reload_Time_Sec],ISNULL(w.WindowStyle,'Normal') WindowStyle, a.ID, "
                        +"CASE WHEN (select top 1 AKTION "
                        +"from autostarter.Schedule  "
-                       +"where ID_Autostart=a.ID "
+                       + "where ID_Autostart=a.ID and Schedule.Aktiv=1 "
                        +"and dateadd(mi,cast(substring(Uhrzeit,4,3) as int),dateadd(hh,cast(substring(Uhrzeit,0,3) as int),dateadd(dd, datediff(dd,0, getDate()), 0))) > getdate() "
                        +"order by dateadd(mi,cast(substring(Uhrzeit,4,3) as int),dateadd(hh,cast(substring(Uhrzeit,0,3) as int),dateadd(dd, datediff(dd,0, getDate()), 0)))) "
-                       +"= 'START' THEN 0 ELSE 1 END Start_Proc "
+                       +"= 'START' THEN 0 ELSE 1 END Start_Proc, "
+                       +"Display "
                        + "from autostarter.AUTOSTART a "
                        + "LEFT OUTER JOIN autostarter.WindowStyle w on w.ID=a.[WindowStyle] "
                        + "where a.Hostname='" + System.Environment.MachineName + "' and a.Aktiv=1 ";
@@ -97,13 +101,12 @@ namespace AutoStarter
                    autoProc.Argumente = !db.getDataReader().IsDBNull(2) ? db.getDataReader().GetString(2) : "";
                    autoProc.ReloadTime = !db.getDataReader().IsDBNull(3) ? db.getDataReader().GetInt32(3) : 0;
                    autoProc.WindowStyle = !db.getDataReader().IsDBNull(4) ? db.getDataReader().GetString(4) : "Normal";
-                   
-                   // Process initial starten? Wenn nein wird das Programm zu einer bestimmten Uhrzeit gestartet :-D
-                   bool startProcInitial = (!db.getDataReader().IsDBNull(5) ? db.getDataReader().GetInt32(6) : 0) == 1;
-                   // Suche nach dem Prozess in der Liste der bereits überwachten Prozess auf dem Client
-                   // Wenn er gefunden wird => alles i.O. nichts machen
-                   // Wenn er nicht gefunden wird dann neu starten und in die Liste aufnehmen
+                   autoProc.Display = !db.getDataReader().IsDBNull(7) ? db.getDataReader().GetInt32(7) : 1;
 
+                   // Process initial starten? Wenn nein wird das Programm zu einer bestimmten Uhrzeit gestartet 
+                   bool startProcInitial = (!db.getDataReader().IsDBNull(5) ? db.getDataReader().GetInt32(6) : 0) == 1;
+
+                   
                    // Läuft der Prozess bereits in der Überwachung ... 
                    AutostartProcess runningProc = aktiveRunningProcesses.Find(item => item.ProcessName == autoProc.ProcessName);
 

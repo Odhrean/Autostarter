@@ -34,7 +34,7 @@ namespace AutoStarter.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.2")]
         public string Version {
             get {
                 return ((string)(this["Version"]));
@@ -43,7 +43,7 @@ namespace AutoStarter.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("$Revision: 392 $")]
+        [global::System.Configuration.DefaultSettingValueAttribute("$Revision: 393 $")]
         public string Build {
             get {
                 return ((string)(this["Build"]));
@@ -52,7 +52,7 @@ namespace AutoStarter.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("$Date: 2015-04-28 13:48:33 +0200 (Di, 28. Apr 2015) $")]
+        [global::System.Configuration.DefaultSettingValueAttribute("$Date: 2015-05-04 12:03:27 +0200 (Mo, 04. Mai 2015) $")]
         public string BuildDate {
             get {
                 return ((string)(this["BuildDate"]));

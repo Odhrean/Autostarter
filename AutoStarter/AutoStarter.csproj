@@ -135,7 +135,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Amber\WindowScrape\WindowScrape.csproj">
+    <ProjectReference Include="..\WindowScrape\WindowScrape.csproj">
       <Project>{c05dc0ee-5dea-49af-b980-13b0d1e2d70d}</Project>
       <Name>WindowScrape</Name>
     </ProjectReference>

@@ -17,6 +17,7 @@ namespace AutoStarter
         public string Argumente { get; set; }
         public int ReloadTime { get; set; }
         public string WindowStyle { get; set; }
+        public int Display { get; set; }
         public List<AutostartTask> sheduleTasks { get; set; }
         private CancellationTokenSource _cancelProcess;
         private CancellationTokenSource _cancelStartProcess;
@@ -44,6 +45,14 @@ namespace AutoStarter
             _processStartInfo.UseShellExecute = true;
 
             return _processStartInfo;
+        }
+
+        public bool startMaximized()
+        {
+            if (WindowStyle == MAXIMIZED)
+                return true;
+            else
+                return false;
         }
 
         public void startTasks()
