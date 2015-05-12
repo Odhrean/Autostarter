@@ -34,7 +34,7 @@ namespace AutoStarter.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.2")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.3")]
         public string Version {
             get {
                 return ((string)(this["Version"]));
@@ -43,7 +43,7 @@ namespace AutoStarter.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("$Revision: 393 $")]
+        [global::System.Configuration.DefaultSettingValueAttribute("$Revision: 397 $")]
         public string Build {
             get {
                 return ((string)(this["Build"]));
@@ -52,7 +52,7 @@ namespace AutoStarter.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("$Date: 2015-05-04 12:03:27 +0200 (Mo, 04. Mai 2015) $")]
+        [global::System.Configuration.DefaultSettingValueAttribute("$Date: 2015-05-12 19:35:40 +0200 (Di, 12. Mai 2015) $")]
         public string BuildDate {
             get {
                 return ((string)(this["BuildDate"]));
@@ -68,39 +68,6 @@ namespace AutoStarter.Properties {
             }
             set {
                 this["Reload_Interval"] = value;
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("240")]
-        public int ConnectionTimeout {
-            get {
-                return ((int)(this["ConnectionTimeout"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=KOE-DLZ-SQL-001.stute.loc;Initial Catalog=Support;Persist Security In" +
-            "fo=True;User ID=sa;Password=sqlserver;Connect Timeout=120;Application Name=Autos" +
-            "tarter")]
-        public string ConnectionString {
-            get {
-                return ((string)(this["ConnectionString"]));
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool DebugApp {
-            get {
-                return ((bool)(this["DebugApp"]));
-            }
-            set {
-                this["DebugApp"] = value;
             }
         }
     }

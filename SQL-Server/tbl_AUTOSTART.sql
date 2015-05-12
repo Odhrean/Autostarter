@@ -7,6 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
+
 CREATE TABLE [autostarter].[AUTOSTART](
 	[ID] [int] IDENTITY(1,1) NOT NULL,
 	[Hostname] [nvarchar](50) NOT NULL,				-- PC Name
@@ -15,6 +16,8 @@ CREATE TABLE [autostarter].[AUTOSTART](
 	[Argumente] [nvarchar](255) NULL,				-- Optionale Argumente
 	[WindowStyle] int NULL,							-- Darstellung des neuen Fensters beim starten, Default NORMAL
 	[Reload_Time_Sec] [int] NOT NULL,				-- Reload-Zeit für Programm, 0= Immer aktiv
+	[Display] int NULL,								-- Die Display-NR auf dem das Programm gestartet werden soll bei Systemen mit mehreren Bildschirmen, Default ist das Primäre Display 1
+	[KeepProcessAlive] bit NOT NULL,				-- 1: Programm nicht beenden lassen -> Bei jedem versuch wieder neu starten
 	[Aktiv] [bit] NOT NULL,
 	[TIME_NEU] [datetime] NULL,
 	[USER_NEU] [nvarchar](100) NULL,
@@ -32,8 +35,16 @@ CREATE TABLE [autostarter].[AUTOSTART](
 ) ON [PRIMARY]
 
 GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'Die Display-NR auf dem das Programm gestartet werden soll bei Systemen mit mehreren Bildschirmen, Default ist das Primäre Display 1' , @level0type=N'SCHEMA',@level0name=N'autostarter', @level1type=N'TABLE',@level1name=N'AUTOSTART', @level2type=N'COLUMN',@level2name=N'Display'
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'Reload-Zeit für Programm, 0= Immer aktiv' , @level0type=N'SCHEMA',@level0name=N'autostarter', @level1type=N'TABLE',@level1name=N'AUTOSTART', @level2type=N'COLUMN',@level2name=N'Reload_Time_Sec'
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'1: Programm nicht beenden lassen -> Bei jedem versuch wieder neu starten' , @level0type=N'SCHEMA',@level0name=N'autostarter', @level1type=N'TABLE',@level1name=N'AUTOSTART', @level2type=N'COLUMN',@level2name=N'KeepProcessAlive'
+GO
 
 ALTER TABLE [autostarter].[AUTOSTART] ADD  CONSTRAINT [DF_AUTOSTART_Reload_Time_Sec]  DEFAULT ((0)) FOR [Reload_Time_Sec]
+GO
+ALTER TABLE [autostarter].[AUTOSTART] ADD  CONSTRAINT [DF_AUTOSTART_KeepProcessAlive]  DEFAULT ((1)) FOR [KeepProcessAlive]
 GO
 
 ALTER TABLE [autostarter].[AUTOSTART] ADD  CONSTRAINT [DF_AUTOSTART_Aktiv]  DEFAULT ((1)) FOR [Aktiv]

@@ -17,7 +17,8 @@ namespace AutoStarter
         public string Argumente { get; set; }
         public int ReloadTime { get; set; }
         public string WindowStyle { get; set; }
-        public int Display { get; set; }
+        public System.Windows.Forms.Screen Display { get; set; }
+        public bool KeepProcessAlive { get; set; }
         public List<AutostartTask> sheduleTasks { get; set; }
         private CancellationTokenSource _cancelProcess;
         private CancellationTokenSource _cancelStartProcess;

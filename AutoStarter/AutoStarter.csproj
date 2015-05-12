@@ -54,7 +54,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>AutoStarter.Program</StartupObject>
+    <StartupObject>AutoStarter.Autostart</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>stute_favicon.ico</ApplicationIcon>
@@ -80,9 +80,8 @@
     </Compile>
     <Compile Include="AutostartProcess.cs" />
     <Compile Include="AutostartTask.cs" />
-    <Compile Include="clsDatabase.cs" />
     <Compile Include="ProcessWatcher.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Autostart.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -109,7 +108,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="ClassDiagram1.cd" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -135,7 +136,15 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WindowScrape\WindowScrape.csproj">
+    <ProjectReference Include="..\..\HELASKiller\HELASKiller\HELASKiller.csproj">
+      <Project>{7b0fedcd-21dc-4125-9c3d-d22f8ff7decd}</Project>
+      <Name>HELASKiller</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\STUTE_Support_DLL\Database\Database.csproj">
+      <Project>{46f0c3fe-4a77-4af6-a49f-0b23b8a2f67b}</Project>
+      <Name>Database</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\STUTE_Support_DLL\WindowScrape\WindowScrape.csproj">
       <Project>{c05dc0ee-5dea-49af-b980-13b0d1e2d70d}</Project>
       <Name>WindowScrape</Name>
     </ProjectReference>

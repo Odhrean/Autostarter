@@ -7,10 +7,11 @@ using System.Threading;
 using WindowScrape;
 using WindowScrape.Types;
 using WindowScrape.Constants;
+using STUTE.Database;
 
 namespace AutoStarter
 {
-    static class Program
+    static class Autostart
     {
 
         private static NotifyIcon notico;
@@ -81,14 +82,14 @@ namespace AutoStarter
                        +"and dateadd(mi,cast(substring(Uhrzeit,4,3) as int),dateadd(hh,cast(substring(Uhrzeit,0,3) as int),dateadd(dd, datediff(dd,0, getDate()), 0))) > getdate() "
                        +"order by dateadd(mi,cast(substring(Uhrzeit,4,3) as int),dateadd(hh,cast(substring(Uhrzeit,0,3) as int),dateadd(dd, datediff(dd,0, getDate()), 0)))) "
                        +"= 'START' THEN 0 ELSE 1 END Start_Proc, "
-                       +"Display "
+                       + "Display, KeepProcessAlive "
                        + "from autostarter.AUTOSTART a "
                        + "LEFT OUTER JOIN autostarter.WindowStyle w on w.ID=a.[WindowStyle] "
                        + "where a.Hostname='" + System.Environment.MachineName + "' and a.Aktiv=1 ";
 
            while (!stop)
            {
-               clsDatabase db = new clsDatabase(sql, "AutoStarter -> monitorDB");
+               Database db = new Database(sql, "AutoStarter -> monitorDB");
 
                // Liste der Prozesse die jetzt laufen sollten nach DB-Config, wird später mit den aktuell laufenden abgeglichen um die zu finden die beendet werden sollen
                List<AutostartProcess> autostartProcess = new List<AutostartProcess>();
@@ -101,8 +102,10 @@ namespace AutoStarter
                    autoProc.Argumente = !db.getDataReader().IsDBNull(2) ? db.getDataReader().GetString(2) : "";
                    autoProc.ReloadTime = !db.getDataReader().IsDBNull(3) ? db.getDataReader().GetInt32(3) : 0;
                    autoProc.WindowStyle = !db.getDataReader().IsDBNull(4) ? db.getDataReader().GetString(4) : "Normal";
-                   autoProc.Display = !db.getDataReader().IsDBNull(7) ? db.getDataReader().GetInt32(7) : 1;
-
+                   autoProc.Display = !db.getDataReader().IsDBNull(7) ? 
+                          System.Windows.Forms.Screen.AllScreens.ToList<System.Windows.Forms.Screen>().Find(x => x.DeviceName.Contains("DISPLAY" + db.getDataReader().GetInt32(7)))
+                        : Screen.PrimaryScreen;
+                   autoProc.KeepProcessAlive = db.getDataReader().GetBoolean(8) ;//== 1 ? true : false;
                    // Process initial starten? Wenn nein wird das Programm zu einer bestimmten Uhrzeit gestartet 
                    bool startProcInitial = (!db.getDataReader().IsDBNull(5) ? db.getDataReader().GetInt32(6) : 0) == 1;
 
@@ -181,7 +184,7 @@ namespace AutoStarter
                         +"from autostarter.Schedule "
                         + "where ID_Autostart=" + autostartId + " and Aktiv=1 ";
 
-            clsDatabase db = new clsDatabase(sql, "AutoStarter -> readScheduleTasks");
+            Database db = new Database(sql, "AutoStarter -> readScheduleTasks");
             while (db.getDataReader().Read())
             {
                 AutostartTask task = new AutostartTask();
@@ -191,21 +194,21 @@ namespace AutoStarter
                 if (db.getDataReader().GetString(1).Equals("START"))
                 {
                     task.doTask = () => { 
-                        Program.startMonitoringThread(proc); 
+                        Autostart.startMonitoringThread(proc); 
                     };
                     task.isStart = true;
                 }
                 if (db.getDataReader().GetString(1).Equals("STOP"))
                 {
                     task.doTask = () => { 
-                        Program.stopMonitoredThread(proc.ProcessName); 
+                        Autostart.stopMonitoredThread(proc.ProcessName); 
                     };
                 }
                 if (db.getDataReader().GetString(1).Equals("RESTART"))
                 {
                     task.doTask = () => {
-                        Program.stopMonitoredThread(proc.ProcessName);
-                        Program.startMonitoringThread(proc); 
+                        Autostart.stopMonitoredThread(proc.ProcessName);
+                        Autostart.startMonitoringThread(proc); 
                     };
                     task.isStart = true;
                 }
@@ -277,7 +280,7 @@ namespace AutoStarter
             // Thread ist bereits im Monitoring => jeder Thread wird 1x ueberwacht!
             if (thread != null)
                 return;
-
+            Debug.Print("Starte Monitoring von {0} ...", proc.ProcessName);
             ProcessWatcher watcherObject = new ProcessWatcher(proc);            
             thread = new Thread(watcherObject.KeepingAlive);
             thread.Name = proc.ProcessName;
@@ -294,19 +297,23 @@ namespace AutoStarter
             if (thread == null)
                 return;
 
-            Debug.Print("Beende " + threadName + "...");
+            Debug.Print("Beende Monitoring von {0} ...", threadName);
+
+            monitoredThreads.Remove(thread);
 
             if (stopAllTask)
             {
-                thread.Abort(true);
+                if (thread.IsAlive)
+                    thread.Abort(true);
             }
             else
             {
-                thread.Abort(false);
+                if (thread.IsAlive)
+                    thread.Abort(false);
             }
-            thread.Join();
+            if (thread.IsAlive)
+                thread.Join();
 
-            monitoredThreads.Remove(thread);
 
         }
 

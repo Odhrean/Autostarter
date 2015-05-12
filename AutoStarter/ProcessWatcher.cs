@@ -44,143 +44,147 @@ namespace AutoStarter
             // Starte alle Schedule-Tasks für bestimmte Uhrzeiten die definiert sind
             _processInfo.startTasks();
 
-                while (true)
+
+            do
+            {
+                Process proc = Process.Start(_processInfo.getProcessStartInfo());
+
+                // Warte etwas um Child-Prozesse (falls vorhanden) spawnen zu lassen
+                Thread.Sleep(200);
+
+                // Wenn Child-Prozesse erzeugt wurden und der Hauptprozess beendet diese übernehmen und auf beendigung warten
+                List<Process> childProcs = GetChildProcesses(proc).ToList();
+
+                try
                 {
-                    Process proc = Process.Start(_processInfo.getProcessStartInfo());     
-                    
-                    // Warte etwas um Child-Prozesse (falls vorhanden) spawnen zu lassen
+                    if (childProcs.Count > 0 && proc.HasExited)
+                    {
+                        proc.Close();
+                        proc = childProcs[0];
+                    }
+                    // Lass das Fenster starten... ohne Wartezeit gibt es eine Chance das das Handle noch nicht vorhanden ist...
                     Thread.Sleep(200);
+                    HwndObject window = new HwndObject(proc.MainWindowHandle);
 
-                    // Wenn Child-Prozesse erzeugt wurden und der Hauptprozess beendet diese übernehmen und auf beendigung warten
-                    List<Process> childProcs = GetChildProcesses(proc).ToList();
+                    if (isFirstStart)
+                    {
+                        // Beim ersten Start das Programm auf das gewünschte Display setzen
+                        window.DisplayOnScreen(_processInfo.Display, _processInfo.startMaximized());
+                        isFirstStart = false;
+                    }
+                    else
+                    {
+                        // Wenn das Programm neu geladen wird die letzte Position einnehmen die es beim beenden inne hatte
+                        //window.SetWindowPlacement(_lastPlacement);
+                        if (_processInfo.Display != System.Windows.Forms.Screen.PrimaryScreen)
+                            window.DisplayOnScreen(_processInfo.Display, _processInfo.startMaximized());
+                    }
 
-                    try
+                    /*
+                    _lastPlacement = window.GetWindowPlacement();
+                    window.Restore();
+                    */
+                    // Programm regelmaessig neu laden oder permanent offen halten?
+                    if (_processInfo.ReloadTime == 0)
+                    {
+                        // Programm immer maximiert neu starten wenn beendet wird, überschreibe die Konfig aus der DB
+                        _processInfo.WindowStyle = AutostartProcess.MAXIMIZED;
+                        proc.WaitForExit();
+                    }
+                    else
+                    {
+                        if (proc.WaitForExit(_processInfo.ReloadTime * 1000) && proc.ExitCode == 1)
                         {
-                            if (childProcs.Count > 0 && proc.HasExited)
-                            {
-                                proc.Close();
-                                proc = childProcs[0];
-                            }
-                            // Lass das Fenster starten... ohne Wartezeit gibt es eine Chance das das Handle noch nicht vorhanden ist...
-                            Thread.Sleep(200);
-                            HwndObject window = new HwndObject(proc.MainWindowHandle);
+                            _processInfo.WindowStyle = AutostartProcess.NORMAL;
+                        }
+                    }
 
-                            if (isFirstStart)
-                            {                                
-                                // Beim ersten Start das Programm auf das gewünschte Display setzen
-                                window.DisplayOnScreen(System.Windows.Forms.Screen.AllScreens.ToList<System.Windows.Forms.Screen>().Find(x => x.DeviceName.Contains("DISPLAY" + _processInfo.Display)),_processInfo.startMaximized());
-                                isFirstStart = false;
-                            }
-                            else
-                            {
-                                // Wenn das Programm neu geladen wird die letzte Position einnehmen die es beim beenden inne hatte
-                                //window.SetWindowPlacement(_lastPlacement);
-                                if(_processInfo.Display != 1)
-                                    window.DisplayOnScreen(System.Windows.Forms.Screen.AllScreens.ToList<System.Windows.Forms.Screen>().Find(x => x.DeviceName.Contains("DISPLAY" + _processInfo.Display)), _processInfo.startMaximized());
-                            }
+                    //int wstyle = window.GetWindowStyle();
+                    //Debug.Print("Handle Start {0} Handle jetzt {1} Fenster-Position für Re-Start sichern...Window-Style {3}", window.Hwnd, proc.MainWindowHandle,wstyle);                        
 
-                            /*
-                            _lastPlacement = window.GetWindowPlacement();
-                            window.Restore();
-                            */
-                            // Programm regelmaessig neu laden oder permanent offen halten?
-                            if (_processInfo.ReloadTime == 0){                            
-                                // Programm immer maximiert neu starten wenn beendet wird, überschreibe die Konfig aus der DB
+                    if (proc != null && !proc.HasExited && proc.MainWindowHandle != IntPtr.Zero)
+                    {
+
+                        switch (window.GetWindowStyle())
+                        {
+                            case 1:
+                                _processInfo.WindowStyle = AutostartProcess.NORMAL;
+                                break;
+                            case 2:
+                                _processInfo.WindowStyle = AutostartProcess.MINIMIZED;
+                                break;
+                            case 3:
                                 _processInfo.WindowStyle = AutostartProcess.MAXIMIZED;
-                                proc.WaitForExit();
-                            }
-                            else
-                            {
-                                if (proc.WaitForExit(_processInfo.ReloadTime * 1000) && proc.ExitCode == 1)
-                                {
-                                    _processInfo.WindowStyle = AutostartProcess.NORMAL;                                    
-                                }
-                            }
-
-                            //int wstyle = window.GetWindowStyle();
-                            //Debug.Print("Handle Start {0} Handle jetzt {1} Fenster-Position für Re-Start sichern...Window-Style {3}", window.Hwnd, proc.MainWindowHandle,wstyle);                        
-
-                        if (proc != null && !proc.HasExited && proc.MainWindowHandle != IntPtr.Zero)
-                            {                                
-                                                               
-                                switch (window.GetWindowStyle())
-                                {
-                                    case 1:
-                                        _processInfo.WindowStyle = AutostartProcess.NORMAL;
-                                        break;
-                                    case 2:
-                                        _processInfo.WindowStyle = AutostartProcess.MINIMIZED;
-                                        break;
-                                    case 3:
-                                        _processInfo.WindowStyle = AutostartProcess.MAXIMIZED;
-                                        break;
-                                }                                
-
-                                // Shutdown Process gracefully
-                                int tryCount = 0;
-                                while (proc != null && !proc.HasExited && tryCount++ < 20)
-                                {
-                                    proc.CloseMainWindow();
-                                }
-                                
-
-                            }
+                                break;
                         }
-                        catch (ThreadAbortException abort)
+
+                        // Shutdown Process gracefully
+                        int tryCount = 0;
+                        while (proc != null && !proc.HasExited && tryCount++ < 20)
                         {
-                            bool stopStartTask = false;
-                            if(abort.ExceptionState != null)
-                            {
-                                stopStartTask = (bool)abort.ExceptionState;
-                            }
-                            Debug.Print("Process-Abort ({0}), Beende Start-Task: {1} : {2}" , _processInfo.ProcessName,stopStartTask, abort.Message);
-                            int tryCount = 0;
-                            // Shutdown Process gracefully
-                            while (proc != null && !proc.HasExited && tryCount++ < 20)
-                            {
-                                proc.CloseMainWindow();
-                            }
-
-                            // Beende alle laufenden Schedule-Tasks für den Process
-                            _processInfo.stopTasks(stopStartTask);
+                            proc.CloseMainWindow();
                         }
-                        catch (Exception e)
+
+
+                    }
+                }
+                catch (ThreadAbortException abort)
+                {
+                    bool stopStartTask = false;
+                    if (abort.ExceptionState != null)
+                    {
+                        stopStartTask = (bool)abort.ExceptionState;
+                    }
+                    Debug.Print("Process-Abort ({0}), Beende Start-Task: {1} : {2}", _processInfo.ProcessName, stopStartTask, abort.Message);
+                    int tryCount = 0;
+                    // Shutdown Process gracefully
+                    while (proc != null && !proc.HasExited && tryCount++ < 20)
+                    {
+                        proc.CloseMainWindow();
+                    }
+
+                    // Beende alle laufenden Schedule-Tasks für den Process
+                    _processInfo.stopTasks(stopStartTask);
+                }
+                catch (Exception e)
+                {
+                    Debug.Print("Fehler (" + _processInfo.ProcessName + "): " + e.Message);
+
+                    if (proc != null && !proc.HasExited)
+                    {
+                        proc.CloseMainWindow();
+                    }
+                }
+                finally
+                {
+                    // Wenn Prozess jetzt noch offen ist dann killen
+                    if (proc != null && !proc.HasExited)
+                    {
+                        proc.Kill();
+                    }
+
+                    // Wenn jetzt noch Child-Prozesse auf sind diese auch killen
+                    if (childProcs != null)
+                    {
+                        foreach (Process child in childProcs)
                         {
-                            Debug.Print("Fehler (" + _processInfo.ProcessName + "): " + e.Message);
-                           
-                            if (proc != null && !proc.HasExited)
+                            if (child != null && !child.HasExited)
                             {
-                                proc.CloseMainWindow();
+                                child.Kill();
                             }
+
+                            child.Close();
+
                         }
-                        finally
-                        {
-                            // Wenn Prozess jetzt noch offen ist dann killen
-                            if (proc != null && !proc.HasExited)
-                            {
-                                proc.Kill();
-                            }
+                    }
 
-                            // Wenn jetzt noch Child-Prozesse auf sind diese auch killen
-                            if (childProcs != null)
-                            {
-                                foreach (Process child in childProcs)
-                                {
-                                    if (child != null && !child.HasExited)
-                                    {
-                                        child.Kill();
-                                    }
+                    proc.Close();
+                }
+            } while (_processInfo.KeepProcessAlive);
 
-                                    child.Close();
-
-                                }
-                            }
-
-                            proc.Close();
-                        }
-                 }
-
-                
+            // Thread beendet, trage auch aus Liste aus...
+            Autostart.stopMonitoredThread(_processInfo.ProcessName); 
+  
         }
 
 
